@@ -17,7 +17,7 @@ const EDIT_ME = {
   letterSignature: "Cel Patrick Paul Albios",
 
   flowerCaption: "Drawn for you with all my heart — Month 7",
-  blendFlowerPaper: false,
+  blendFlowerPaper: true,
 
   albumTitle: "NOVEMBER\nPHOTO ALBUM",
   albumSubtitle:
