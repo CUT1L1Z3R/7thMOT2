@@ -2,8 +2,8 @@
    EASY SETTINGS — EDIT YOUR TEXT, MUSIC & NOVEMBER CAPTIONS HERE
    ========================================================================== */
 const EDIT_ME = {
-  musicFile: "./music.mp3",          // Place your .mp3 file in the same folder as index.html
-  musicVolume: 0.65,                 // Volume from 0.0 to 1.0
+  musicFile: "./music.mp3",             // Place your .mp3 file in the same folder as index.html
+  musicVolume: 0.65,                    // Volume from 0.0 to 1.0
 
   myFlowerFile: "./photos/Flower.jpeg", // Used if photos/flower.* is not found
 
@@ -185,6 +185,58 @@ function setupBackgroundMusic() {
 }
 
 /* ==========================================================================
+   WHITE BACKGROUND REMOVAL FOR FLOWER DRAWING
+   ========================================================================== */
+
+function removeWhiteBackgroundToDataUrl(imgElement) {
+  return new Promise((resolve) => {
+    const applyKeying = () => {
+      try {
+        const w = imgElement.naturalWidth;
+        const h = imgElement.naturalHeight;
+        if (!w || !h) return resolve(null);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(null);
+
+        ctx.drawImage(imgElement, 0, 0);
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const data = imageData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+
+          if (r > 235 && g > 235 && b > 235) {
+            data[i + 3] = 0;
+          } else if (r > 210 && g > 210 && b > 210) {
+            const avg = (r + g + b) / 3;
+            const alpha = Math.max(0, Math.min(1, (235 - avg) / (235 - 210)));
+            data[i + 3] = Math.round(data[i + 3] * alpha);
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      } catch {
+        resolve(null);
+      }
+    };
+
+    if (imgElement.complete && imgElement.naturalWidth > 0) {
+      applyKeying();
+    } else {
+      imgElement.addEventListener("load", applyKeying, { once: true });
+      imgElement.addEventListener("error", () => resolve(null), { once: true });
+    }
+  });
+}
+
+/* ==========================================================================
    BOOK STATE & RENDERING
    ========================================================================== */
 
@@ -292,9 +344,19 @@ function renderBookContent() {
 
   if (customImg) {
     if (detectedFlowerSrc) {
-      customImg.src = detectedFlowerSrc;
       customImg.classList.remove("hidden");
-      customImg.classList.toggle("blend-paper", Boolean(EDIT_ME.blendFlowerPaper));
+      customImg.classList.remove("blend-paper");
+      customImg.dataset.rawKeyed = "";
+      customImg.src = detectedFlowerSrc;
+
+      if (EDIT_ME.blendFlowerPaper) {
+        removeWhiteBackgroundToDataUrl(customImg).then((transparentUrl) => {
+          if (transparentUrl && customImg.dataset.rawKeyed !== "1") {
+            customImg.dataset.rawKeyed = "1";
+            customImg.src = transparentUrl;
+          }
+        });
+      }
     } else {
       customImg.removeAttribute("src");
       customImg.classList.add("hidden");
@@ -613,94 +675,3 @@ document.addEventListener("DOMContentLoaded", async () => {
       e.preventDefault();
       openBook();
     }
-  });
-
-  document.getElementById("closeBookBtn")?.addEventListener("click", closeBook);
-
-  document.getElementById("prevPageBtn")?.addEventListener("click", () => {
-    if (isMobileViewport() && zoomFocus === "right") {
-      setZoomFocus("left");
-      return;
-    }
-    if (currentSpread > 1) {
-      if (isMobileViewport() && zoomFocus !== "spread") {
-        zoomFocus = "right";
-        syncZoomButtons();
-        updateStageTransform();
-      }
-      goToSpread(1);
-    }
-  });
-
-  document.getElementById("nextPageBtn")?.addEventListener("click", () => {
-    if (isMobileViewport() && zoomFocus === "left") {
-      setZoomFocus("right");
-      return;
-    }
-    if (currentSpread < 2) {
-      if (isMobileViewport() && zoomFocus !== "spread") {
-        zoomFocus = "left";
-        syncZoomButtons();
-        updateStageTransform();
-      }
-      goToSpread(2);
-    }
-  });
-
-  document.querySelectorAll(".zoom-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      setZoomFocus(btn.dataset.zoom || "spread");
-    });
-  });
-
-  const lightbox = document.getElementById("photoLightbox");
-  document.getElementById("lightboxCloseBtn")?.addEventListener("click", closeLightbox);
-  document.getElementById("lightboxPrevBtn")?.addEventListener("click", () => stepLightbox(-1));
-  document.getElementById("lightboxNextBtn")?.addEventListener("click", () => stepLightbox(1));
-  lightbox?.addEventListener("click", (e) => {
-    if (e.target === lightbox) closeLightbox();
-  });
-
-  document.addEventListener("keydown", (e) => {
-    const isLightboxOpen = lightbox && !lightbox.classList.contains("hidden");
-    if (isLightboxOpen) {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowLeft") stepLightbox(-1);
-      if (e.key === "ArrowRight") stepLightbox(1);
-      return;
-    }
-
-    if (isBookOpen) {
-      if (e.key === "ArrowRight") goToSpread(2);
-      if (e.key === "ArrowLeft") goToSpread(1);
-      if (e.key === "Escape") closeBook();
-    }
-  });
-
-  let touchStartX = 0;
-  const stage = document.getElementById("bookStage");
-  stage?.addEventListener(
-    "touchstart",
-    (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    },
-    { passive: true }
-  );
-  stage?.addEventListener(
-    "touchend",
-    (e) => {
-      if (!isBookOpen) return;
-      const diff = touchStartX - e.changedTouches[0].screenX;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) goToSpread(2);
-        else goToSpread(1);
-      }
-    },
-    { passive: true }
-  );
-
-  window.addEventListener("resize", () => {
-    updateStageTransform();
-    updateSpreadUI();
-  });
-});
