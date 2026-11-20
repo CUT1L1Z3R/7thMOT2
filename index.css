@@ -466,6 +466,7 @@ body {
   justify-content: center;
   padding: 8px;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .flower-svg {
