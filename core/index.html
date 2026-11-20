@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Our 7th Monthsary — Keepsake Book</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+  <!-- Warm ambient desk background & floating motes -->
+  <div class="desk-backdrop" aria-hidden="true">
+    <div class="desk-glow"></div>
+    <div class="dust-motes" id="dustMotes"></div>
+  </div>
+
+  <!-- Top Utility Bar -->
+  <header class="top-bar">
+    <button type="button" class="pill-btn hidden" id="closeBookBtn" title="Close Book">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      </svg>
+      <span>Close Book</span>
+    </button>
+
+    <div class="spread-indicator hidden" id="spreadIndicator">Pages 1 – 2 of 4</div>
+
+    <button type="button" class="pill-btn pill-btn--music" id="musicToggleBtn" title="Toggle Music">
+      <span id="musicBtnLabel">♪ Play Music</span>
+    </button>
+  </header>
+
+  <!-- Main 3D Book Stage -->
+  <main class="book-stage" id="bookStage">
+    <div class="book-scale-wrapper" id="bookScaleWrapper">
+      <div class="book-scene" id="bookScene">
+        <!-- Ribbon Bookmark -->
+        <div class="silk-ribbon" aria-hidden="true"></div>
+
+        <!-- OPEN BOOK SPREAD BASE (Left & Right Hardcover Boards + Page Blocks) -->
+        <div class="open-book-base" id="openBookBase">
+          <!-- Left Hardcover & Page Stack -->
+          <div class="book-half book-half--left" id="leftHalf">
+            <div class="hardcover-board hardcover-board--left"></div>
+            <div class="page-stack page-stack--left"></div>
+
+            <!-- Active Left Page Container (swaps between Page 1 Letter & Page 3 Album Title) -->
+            <article class="paper-page paper-page--left" id="leftPageContainer">
+              <!-- SPREAD 1: PAGE 1 (Love Letter) -->
+              <div class="page-content active" id="page1Content" data-page="1">
+                <div class="page-corner page-corner--tl"></div>
+                <div class="page-corner page-corner--tr"></div>
+                <div class="page-corner page-corner--bl"></div>
+                <div class="page-corner page-corner--br"></div>
+
+                <div class="letter-header">
+                  <span class="letter-date" id="displayLetterSubtitle">Happy 7th Monthsary, My Love</span>
+                  <div class="header-divider"></div>
+                </div>
+
+                <div class="letter-scroll-area">
+                  <h2 class="letter-greeting" id="displayLetterGreeting">My Dearest Asawa,</h2>
+                  <div class="letter-body" id="displayLetterBody"></div>
+                  <div class="letter-signoff">
+                    <p class="signoff-closing">Forever &amp; always yours,</p>
+                    <p class="signoff-name" id="displayLetterSignature">Forever Yours</p>
+                  </div>
+                </div>
+
+                <div class="page-footer-num">1</div>
+              </div>
+
+              <!-- SPREAD 2: PAGE 3 (Photo Album Title Page) -->
+              <div class="page-content" id="page3Content" data-page="3">
+                <div class="page-corner page-corner--tl"></div>
+                <div class="page-corner page-corner--tr"></div>
+                <div class="page-corner page-corner--bl"></div>
+                <div class="page-corner page-corner--br"></div>
+
+                <div class="album-title-card">
+                  <div class="album-badge">NOVEMBER ARCHIVE</div>
+                  <div class="album-ornament-top" aria-hidden="true">✦ ─── ❀ ─── ✦</div>
+                  <h2 class="album-main-title" id="displayAlbumTitle">NOVEMBER<br />PHOTO ALBUM</h2>
+                  <div class="album-gold-rule"></div>
+                  <p class="album-subtitle" id="displayAlbumSubtitle">
+                    Every candid laugh, random errand, and quiet November moment with you is my favorite memory.
+                  </p>
+                  <div class="album-meta-pill">
+                    <span id="albumCountBadge">10 Captured Moments</span>
+                  </div>
+                  <p class="album-hint">Tap any photo on the right to view full screen &rarr;</p>
+                </div>
+
+                <div class="page-footer-num">3</div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Center Spine Gutter -->
+          <div class="center-spine-crease" aria-hidden="true"></div>
+
+          <!-- Right Hardcover & Page Stack -->
+          <div class="book-half book-half--right" id="rightHalf">
+            <div class="hardcover-board hardcover-board--right"></div>
+            <div class="page-stack page-stack--right"></div>
+
+            <!-- Active Right Page Container (swaps between Page 2 Flower Drawing & Page 4 Photo Gallery) -->
+            <article class="paper-page paper-page--right" id="rightPageContainer">
+              <!-- SPREAD 1: PAGE 2 (Hand-Made Flower Drawing) -->
+              <div class="page-content active" id="page2Content" data-page="2">
+                <div class="page-corner page-corner--tl"></div>
+                <div class="page-corner page-corner--tr"></div>
+                <div class="page-corner page-corner--bl"></div>
+                <div class="page-corner page-corner--br"></div>
+
+                <div class="botanical-header">
+                  <span>BOTANICAL KEEPSAKE</span>
+                </div>
+
+                <div class="flower-artwork-stage" id="flowerArtworkStage">
+                  <img
+                    id="customFlowerImg"
+                    class="custom-flower-img blend-paper"
+                    alt="My flower drawing"
+                  />
+                </div>
+
+                <p class="flower-caption" id="displayFlowerCaption">Drawn for you with all my heart — Month 7</p>
+                <div class="page-footer-num">2</div>
+              </div>
+
+              <!-- SPREAD 2: PAGE 4 (Polaroid Photo Gallery) -->
+              <div class="page-content" id="page4Content" data-page="4">
+                <div class="gallery-header">
+                  <span>OUR MEMORIES</span>
+                  <span class="gallery-sub-tag">Tap to enlarge</span>
+                </div>
+
+                <div class="polaroid-grid-scroll" id="polaroidGrid"></div>
+
+                <div class="page-footer-num">4</div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Animated 3D Turning Page Leaf (for flipping between Spread 1 & Spread 2) -->
+          <div class="turning-leaf" id="turningLeaf" aria-hidden="true">
+            <div class="turning-leaf-face turning-leaf-face--front"></div>
+            <div class="turning-leaf-face turning-leaf-face--back"></div>
+          </div>
+        </div>
+
+        <!-- CLOSED HARDCOVER FRONT COVER (3D Hinged on Spine) -->
+        <div class="front-cover-assembly" id="frontCoverAssembly" role="button" tabindex="0" aria-label="Open Our 7th Monthsary book">
+          <!-- Front Face of Closed Hardcover -->
+          <div class="cover-front">
+            <div class="cover-spine-ridge" aria-hidden="true">
+              <span class="spine-rib"></span>
+              <span class="spine-rib"></span>
+              <span class="spine-rib"></span>
+              <span class="spine-rib"></span>
+            </div>
+
+            <div class="cover-foil-frame">
+              <div class="cover-corner cover-corner--tl"></div>
+              <div class="cover-corner cover-corner--tr"></div>
+              <div class="cover-corner cover-corner--bl"></div>
+              <div class="cover-corner cover-corner--br"></div>
+
+              <div class="cover-top-ornament">
+                <span>✦</span>
+                <p class="cover-subtitle" id="displayCoverSubtitle">SEVEN MONTHS OF US</p>
+              </div>
+
+              <div class="cover-title-block">
+                <h1 class="cover-main-title" id="displayCoverTitle">OUR 7TH<br />MONTHSARY</h1>
+                <div class="cover-emblem" aria-hidden="true">
+                  <svg width="74" height="54" viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 34 C25 34, 32 26, 40 26 C48 26, 55 34, 70 34" stroke="#e4c27a" stroke-width="1.2" />
+                    <circle cx="40" cy="18" r="8" stroke="#e4c27a" stroke-width="1.3" />
+                    <path d="M36 18 C36 15, 44 15, 44 18 C44 21, 38 22, 38 19" stroke="#e4c27a" stroke-width="1.1" />
+                    <line x1="40" y1="26" x2="40" y2="48" stroke="#e4c27a" stroke-width="1.3" />
+                    <path d="M40 37 C32 34, 27 37, 27 40 C32 42, 37 40, 40 37 Z" stroke="#e4c27a" stroke-width="1.1" />
+                    <path d="M40 35 C48 32, 53 35, 53 38 C48 40, 43 38, 40 35 Z" stroke="#e4c27a" stroke-width="1.1" />
+                  </svg>
+                </div>
+              </div>
+
+              <div class="cover-bottom-stamp">
+                <div class="stamp-line"></div>
+                <span>KEEPSAKE EDITION</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inside Front Cover (Endpaper visible during flip) -->
+          <div class="cover-inside">
+            <div class="endpaper-pattern">
+              <p class="ex-libris">Ex Libris &bull; Month VII</p>
+            </div>
+          </div>
+
+          <!-- Chunky Layered Cream Page Edges visible when closed -->
+          <div class="closed-page-edges-right" aria-hidden="true"></div>
+          <div class="closed-page-edges-bottom" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tap Prompt below closed book -->
+    <p class="tap-prompt" id="tapPrompt">
+      <span class="sparkle-icon">✦</span> Tap the book to open
+    </p>
+  </main>
+
+  <!-- Bottom Navigation & Zoom Dock (visible when book is open) -->
+  <nav class="bottom-dock hidden" id="bottomDock" aria-label="Book controls">
+    <button type="button" class="dock-btn" id="prevPageBtn" disabled>
+      <span>&larr; Prev</span>
+    </button>
+
+    <div class="zoom-segmented" role="group" aria-label="Zoom focus">
+      <button type="button" class="zoom-btn active" data-zoom="spread">Spread</button>
+      <button type="button" class="zoom-btn" data-zoom="left">Left Page</button>
+      <button type="button" class="zoom-btn" data-zoom="right">Right Page</button>
+    </div>
+
+    <button type="button" class="dock-btn dock-btn--primary" id="nextPageBtn">
+      <span>Next &rarr;</span>
+    </button>
+  </nav>
+
+  <!-- Full-Screen Photo Lightbox -->
+  <div class="lightbox hidden" id="photoLightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <button type="button" class="lightbox-close" id="lightboxCloseBtn" aria-label="Close photo">&times;</button>
+    <button type="button" class="lightbox-nav lightbox-nav--prev" id="lightboxPrevBtn" aria-label="Previous photo">&#8249;</button>
+    <figure class="lightbox-polaroid">
+      <img id="lightboxImg" src="" alt="Memory photo" />
+      <figcaption id="lightboxCaption"></figcaption>
+      <span class="lightbox-counter" id="lightboxCounter">1 / 10</span>
+    </figure>
+    <button type="button" class="lightbox-nav lightbox-nav--next" id="lightboxNextBtn" aria-label="Next photo">&#8250;</button>
+  </div>
+
+  <!-- Background Music Player -->
+  <audio id="bgMusic" src="./music.mp3" loop preload="auto" playsinline></audio>
+
+  <script src="index.js"></script>
+</body>
+</html>
