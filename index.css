@@ -1,4 +1,3 @@
-
 :root {
   --desk-bg-light: #efe5d4;
   --desk-bg-dark: #dccab0;
@@ -479,7 +478,7 @@ body {
 
 .custom-flower-img.blend-paper {
   mix-blend-mode: multiply;
-  filter: contrast(1.06);
+  filter: brightness(1.12) contrast(1.25);
 }
 
 .flower-caption {
