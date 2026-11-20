@@ -376,18 +376,27 @@ function updateSpreadUI() {
   const indicator = document.getElementById("spreadIndicator");
   const prevBtn = document.getElementById("prevPageBtn");
   const nextBtn = document.getElementById("nextPageBtn");
+  const isMobile = window.innerWidth <= 860;
 
   if (indicator) {
     indicator.textContent = currentSpread === 1 ? "Pages 1 – 2 of 4" : "Pages 3 – 4 of 4";
   }
-  if (prevBtn) prevBtn.disabled = currentSpread <= 1;
-  if (nextBtn) nextBtn.disabled = currentSpread >= 2;
+  if (prevBtn) {
+    prevBtn.disabled = isMobile && zoomFocus !== "spread"
+      ? currentSpread <= 1 && zoomFocus === "left"
+      : currentSpread <= 1;
+  }
+  if (nextBtn) {
+    nextBtn.disabled = isMobile && zoomFocus !== "spread"
+      ? currentSpread >= 2 && zoomFocus === "right"
+      : currentSpread >= 2;
+  }
 }
 
 function openBook() {
   if (isBookOpen) return;
   isBookOpen = true;
-  zoomFocus = "spread";
+  zoomFocus = window.innerWidth <= 860 ? "left" : "spread";
   syncZoomButtons();
 
   startBackgroundMusic();
@@ -590,9 +599,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Close Book
   document.getElementById("closeBookBtn")?.addEventListener("click", closeBook);
 
-  // Page Spread Navigation
-  document.getElementById("prevPageBtn")?.addEventListener("click", () => goToSpread(1));
-  document.getElementById("nextPageBtn")?.addEventListener("click", () => goToSpread(2));
+  // Page Spread Navigation (with smart one-page stepping when zoomed on mobile)
+  document.getElementById("prevPageBtn")?.addEventListener("click", () => {
+    const isMobile = window.innerWidth <= 860;
+    if (isMobile && zoomFocus === "right") {
+      zoomFocus = "left";
+      syncZoomButtons();
+      updateStageTransform();
+      updateSpreadUI();
+      return;
+    }
+    if (currentSpread > 1) {
+      if (isMobile && zoomFocus !== "spread") {
+        zoomFocus = "right";
+        syncZoomButtons();
+        updateStageTransform();
+      }
+      goToSpread(1);
+    }
+  });
+
+  document.getElementById("nextPageBtn")?.addEventListener("click", () => {
+    const isMobile = window.innerWidth <= 860;
+    if (isMobile && zoomFocus === "left") {
+      zoomFocus = "right";
+      syncZoomButtons();
+      updateStageTransform();
+      updateSpreadUI();
+      return;
+    }
+    if (currentSpread < 2) {
+      if (isMobile && zoomFocus !== "spread") {
+        zoomFocus = "left";
+        syncZoomButtons();
+        updateStageTransform();
+      }
+      goToSpread(2);
+    }
+  });
 
   // Zoom Controls
   document.querySelectorAll(".zoom-btn").forEach((btn) => {
@@ -600,6 +644,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       zoomFocus = btn.dataset.zoom || "spread";
       syncZoomButtons();
       updateStageTransform();
+      updateSpreadUI();
     });
   });
 
@@ -652,5 +697,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     { passive: true }
   );
 
-  window.addEventListener("resize", updateStageTransform);
+  window.addEventListener("resize", () => {
+    updateStageTransform();
+    updateSpreadUI();
+  });
 });
