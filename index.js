@@ -675,3 +675,94 @@ document.addEventListener("DOMContentLoaded", async () => {
       e.preventDefault();
       openBook();
     }
+  });
+
+  document.getElementById("closeBookBtn")?.addEventListener("click", closeBook);
+
+  document.getElementById("prevPageBtn")?.addEventListener("click", () => {
+    if (isMobileViewport() && zoomFocus === "right") {
+      setZoomFocus("left");
+      return;
+    }
+    if (currentSpread > 1) {
+      if (isMobileViewport() && zoomFocus !== "spread") {
+        zoomFocus = "right";
+        syncZoomButtons();
+        updateStageTransform();
+      }
+      goToSpread(1);
+    }
+  });
+
+  document.getElementById("nextPageBtn")?.addEventListener("click", () => {
+    if (isMobileViewport() && zoomFocus === "left") {
+      setZoomFocus("right");
+      return;
+    }
+    if (currentSpread < 2) {
+      if (isMobileViewport() && zoomFocus !== "spread") {
+        zoomFocus = "left";
+        syncZoomButtons();
+        updateStageTransform();
+      }
+      goToSpread(2);
+    }
+  });
+
+  document.querySelectorAll(".zoom-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setZoomFocus(btn.dataset.zoom || "spread");
+    });
+  });
+
+  const lightbox = document.getElementById("photoLightbox");
+  document.getElementById("lightboxCloseBtn")?.addEventListener("click", closeLightbox);
+  document.getElementById("lightboxPrevBtn")?.addEventListener("click", () => stepLightbox(-1));
+  document.getElementById("lightboxNextBtn")?.addEventListener("click", () => stepLightbox(1));
+  lightbox?.addEventListener("click", (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const isLightboxOpen = lightbox && !lightbox.classList.contains("hidden");
+    if (isLightboxOpen) {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") stepLightbox(-1);
+      if (e.key === "ArrowRight") stepLightbox(1);
+      return;
+    }
+
+    if (isBookOpen) {
+      if (e.key === "ArrowRight") goToSpread(2);
+      if (e.key === "ArrowLeft") goToSpread(1);
+      if (e.key === "Escape") closeBook();
+    }
+  });
+
+  let touchStartX = 0;
+  const stage = document.getElementById("bookStage");
+  stage?.addEventListener(
+    "touchstart",
+    (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    },
+    { passive: true }
+  );
+  stage?.addEventListener(
+    "touchend",
+    (e) => {
+      if (!isBookOpen) return;
+      const diff = touchStartX - e.changedTouches[0].screenX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) goToSpread(2);
+        else goToSpread(1);
+      }
+    },
+    { passive: true }
+  );
+
+  window.addEventListener("resize", () => {
+    updateStageTransform();
+    updateSpreadUI();
+  });
+});
