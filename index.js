@@ -534,3 +534,173 @@ function setupDirectPageTap() {
 
   let downX = 0;
   let downY = 0;
+  let downTime = 0;
+
+  function attachTapListener(el, onTap) {
+    if (!el) return;
+    el.style.cursor = "pointer";
+
+    el.addEventListener("pointerdown", (e) => {
+      downX = e.clientX;
+      downY = e.clientY;
+      downTime = Date.now();
+    });
+
+    el.addEventListener("pointerup", (e) => {
+      if (!isBookOpen || isFlipping) return;
+      if (e.target.closest(".polaroid-card")) return;
+
+      const movedX = Math.abs(e.clientX - downX);
+      const movedY = Math.abs(e.clientY - downY);
+      const elapsed = Date.now() - downTime;
+
+      if (movedX < 10 && movedY < 10 && elapsed < 350) {
+        onTap();
+      }
+    });
+  }
+
+  attachTapListener(leftHalf, () => {
+    if (isMobileViewport() && zoomFocus === "right") {
+      setZoomFocus("left");
+      return;
+    }
+    if (currentSpread === 2) {
+      if (isMobileViewport() && zoomFocus !== "spread") {
+        zoomFocus = "right";
+        syncZoomButtons();
+        updateStageTransform();
+      }
+      goToSpread(1);
+    } else {
+      closeBook();
+    }
+  });
+
+  attachTapListener(rightHalf, () => {
+    if (isMobileViewport() && zoomFocus === "left") {
+      setZoomFocus("right");
+      return;
+    }
+    if (currentSpread === 1) {
+      if (isMobileViewport() && zoomFocus !== "spread") {
+        zoomFocus = "left";
+        syncZoomButtons();
+        updateStageTransform();
+      }
+      goToSpread(2);
+    }
+  });
+}
+
+/* ==========================================================================
+   INITIALIZATION & CONTROLS
+   ========================================================================== */
+
+document.addEventListener("DOMContentLoaded", async () => {
+  initDustMotes();
+  updateStageTransform();
+  setupBackgroundMusic();
+
+  await detectFolderImages();
+  renderBookContent();
+  setupDirectPageTap();
+
+  const frontCover = document.getElementById("frontCoverAssembly");
+  frontCover?.addEventListener("click", openBook);
+  frontCover?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openBook();
+    }
+  });
+
+  document.getElementById("closeBookBtn")?.addEventListener("click", closeBook);
+
+  document.getElementById("prevPageBtn")?.addEventListener("click", () => {
+    if (isMobileViewport() && zoomFocus === "right") {
+      setZoomFocus("left");
+      return;
+    }
+    if (currentSpread > 1) {
+      if (isMobileViewport() && zoomFocus !== "spread") {
+        zoomFocus = "right";
+        syncZoomButtons();
+        updateStageTransform();
+      }
+      goToSpread(1);
+    }
+  });
+
+  document.getElementById("nextPageBtn")?.addEventListener("click", () => {
+    if (isMobileViewport() && zoomFocus === "left") {
+      setZoomFocus("right");
+      return;
+    }
+    if (currentSpread < 2) {
+      if (isMobileViewport() && zoomFocus !== "spread") {
+        zoomFocus = "left";
+        syncZoomButtons();
+        updateStageTransform();
+      }
+      goToSpread(2);
+    }
+  });
+
+  document.querySelectorAll(".zoom-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setZoomFocus(btn.dataset.zoom || "spread");
+    });
+  });
+
+  const lightbox = document.getElementById("photoLightbox");
+  document.getElementById("lightboxCloseBtn")?.addEventListener("click", closeLightbox);
+  document.getElementById("lightboxPrevBtn")?.addEventListener("click", () => stepLightbox(-1));
+  document.getElementById("lightboxNextBtn")?.addEventListener("click", () => stepLightbox(1));
+  lightbox?.addEventListener("click", (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const isLightboxOpen = lightbox && !lightbox.classList.contains("hidden");
+    if (isLightboxOpen) {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") stepLightbox(-1);
+      if (e.key === "ArrowRight") stepLightbox(1);
+      return;
+    }
+
+    if (isBookOpen) {
+      if (e.key === "ArrowRight") goToSpread(2);
+      if (e.key === "ArrowLeft") goToSpread(1);
+      if (e.key === "Escape") closeBook();
+    }
+  });
+
+  let touchStartX = 0;
+  const stage = document.getElementById("bookStage");
+  stage?.addEventListener(
+    "touchstart",
+    (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    },
+    { passive: true }
+  );
+  stage?.addEventListener(
+    "touchend",
+    (e) => {
+      if (!isBookOpen) return;
+      const diff = touchStartX - e.changedTouches[0].screenX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) goToSpread(2);
+        else goToSpread(1);
+      }
+    },
+    { passive: true }
+  );
+
+  window.addEventListener("resize", () => {
+    updateStageTransform();
+    updateSpreadUI();
+  });
+});
