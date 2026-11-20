@@ -2,8 +2,8 @@
    EASY SETTINGS — EDIT YOUR TEXT, MUSIC & NOVEMBER CAPTIONS HERE
    ========================================================================== */
 const EDIT_ME = {
-  musicFile: "./music.mp3",     // Place your .mp3 file in the same folder as index.html
-  musicVolume: 0.65,            // Volume from 0.0 to 1.0
+  musicFile: "./music.mp3",          // Place your .mp3 file in the same folder as index.html
+  musicVolume: 0.65,                 // Volume from 0.0 to 1.0
 
   myFlowerFile: "./photos/Flower.jpeg", // Used if photos/flower.* is not found
 
@@ -44,6 +44,11 @@ const EDIT_ME = {
 
 const MAX_AUTO_PHOTOS = 10;
 const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "JPG", "JPEG", "PNG"];
+const MOBILE_BREAKPOINT = 860;
+
+function isMobileViewport() {
+  return window.innerWidth <= MOBILE_BREAKPOINT;
+}
 
 function probeImage(url) {
   return new Promise((resolve) => {
@@ -152,10 +157,8 @@ function setupBackgroundMusic() {
   }
   audio.volume = typeof EDIT_ME.musicVolume === "number" ? EDIT_ME.musicVolume : 0.65;
 
-  // 1. Try immediate autoplay on load
   startBackgroundMusic();
 
-  // 2. If mobile browser blocked autoplay, start automatically on first tap anywhere
   const unlockOnFirstTouch = async () => {
     if (userMutedMusic || !audio.paused) return;
     const started = await startBackgroundMusic();
@@ -168,7 +171,6 @@ function setupBackgroundMusic() {
   document.addEventListener("pointerdown", unlockOnFirstTouch);
   document.addEventListener("keydown", unlockOnFirstTouch);
 
-  // 3. Manual Play/Pause toggle button
   toggleBtn?.addEventListener("click", async (e) => {
     e.stopPropagation();
     if (audio.paused) {
@@ -194,6 +196,13 @@ let isFlipping = false;
 let zoomFocus = "spread";
 let lightboxIndex = 0;
 
+function setZoomFocus(nextZoom) {
+  zoomFocus = nextZoom;
+  syncZoomButtons();
+  updateStageTransform();
+  updateSpreadUI();
+}
+
 function initDustMotes() {
   const container = document.getElementById("dustMotes");
   if (!container) return;
@@ -218,9 +227,9 @@ function updateStageTransform() {
   const scene = document.getElementById("bookScene");
   if (!wrapper || !scene) return;
 
-  const isMobile = window.innerWidth <= 860;
-  const pageW = isMobile ? 296 : 396;
-  const pageH = isMobile ? 404 : 534;
+  const mobile = isMobileViewport();
+  const pageW = mobile ? 296 : 396;
+  const pageH = mobile ? 404 : 534;
 
   const targetW = isBookOpen ? pageW * 2 + 28 : pageW + 28;
   const targetH = pageH + 36;
@@ -248,13 +257,11 @@ function formatMultilineHtml(text) {
 }
 
 function renderBookContent() {
-  // Cover
   const coverTitleEl = document.getElementById("displayCoverTitle");
   const coverSubtitleEl = document.getElementById("displayCoverSubtitle");
   if (coverTitleEl) coverTitleEl.innerHTML = formatMultilineHtml(EDIT_ME.coverTitle);
   if (coverSubtitleEl) coverSubtitleEl.textContent = EDIT_ME.coverSubtitle;
 
-  // Page 1: Love Letter
   const letterSubEl = document.getElementById("displayLetterSubtitle");
   const letterGreetEl = document.getElementById("displayLetterGreeting");
   const letterBodyEl = document.getElementById("displayLetterBody");
@@ -278,7 +285,6 @@ function renderBookContent() {
     });
   }
 
-  // Page 2: Your Own Flower Image Only
   const customImg = document.getElementById("customFlowerImg");
   const flowerCaptionEl = document.getElementById("displayFlowerCaption");
 
@@ -295,7 +301,6 @@ function renderBookContent() {
     }
   }
 
-  // Page 3: Album Title Page
   const albumTitleEl = document.getElementById("displayAlbumTitle");
   const albumSubEl = document.getElementById("displayAlbumSubtitle");
   const albumCountEl = document.getElementById("albumCountBadge");
@@ -307,7 +312,6 @@ function renderBookContent() {
     albumCountEl.textContent = `${count} Captured ${count === 1 ? "Moment" : "Moments"}`;
   }
 
-  // Page 4: Polaroid Scrapbook Grid
   const gridEl = document.getElementById("polaroidGrid");
   if (gridEl) {
     gridEl.innerHTML = "";
@@ -376,18 +380,18 @@ function updateSpreadUI() {
   const indicator = document.getElementById("spreadIndicator");
   const prevBtn = document.getElementById("prevPageBtn");
   const nextBtn = document.getElementById("nextPageBtn");
-  const isMobile = window.innerWidth <= 860;
+  const mobile = isMobileViewport();
 
   if (indicator) {
     indicator.textContent = currentSpread === 1 ? "Pages 1 – 2 of 4" : "Pages 3 – 4 of 4";
   }
   if (prevBtn) {
-    prevBtn.disabled = isMobile && zoomFocus !== "spread"
+    prevBtn.disabled = mobile && zoomFocus !== "spread"
       ? currentSpread <= 1 && zoomFocus === "left"
       : currentSpread <= 1;
   }
   if (nextBtn) {
-    nextBtn.disabled = isMobile && zoomFocus !== "spread"
+    nextBtn.disabled = mobile && zoomFocus !== "spread"
       ? currentSpread >= 2 && zoomFocus === "right"
       : currentSpread >= 2;
   }
@@ -396,7 +400,7 @@ function updateSpreadUI() {
 function openBook() {
   if (isBookOpen) return;
   isBookOpen = true;
-  zoomFocus = window.innerWidth <= 860 ? "left" : "spread";
+  zoomFocus = isMobileViewport() ? "left" : "spread";
   syncZoomButtons();
 
   startBackgroundMusic();
@@ -530,175 +534,3 @@ function setupDirectPageTap() {
 
   let downX = 0;
   let downY = 0;
-  let downTime = 0;
-
-  function attachTapListener(el, onTap) {
-    if (!el) return;
-    el.style.cursor = "pointer";
-
-    el.addEventListener("pointerdown", (e) => {
-      downX = e.clientX;
-      downY = e.clientY;
-      downTime = Date.now();
-    });
-
-    el.addEventListener("pointerup", (e) => {
-      if (!isBookOpen || isFlipping) return;
-      if (e.target.closest(".polaroid-card")) return;
-
-      const movedX = Math.abs(e.clientX - downX);
-      const movedY = Math.abs(e.clientY - downY);
-      const elapsed = Date.now() - downTime;
-
-      if (movedX < 10 && movedY < 10 && elapsed < 350) {
-        onTap();
-      }
-    });
-  }
-
-  // Tap Left Page -> Flip back to Spread 1 (or close book if already on Spread 1)
-  attachTapListener(leftHalf, () => {
-    if (currentSpread === 2) {
-      goToSpread(1);
-    } else {
-      closeBook();
-    }
-  });
-
-  // Tap Right Page -> Flip forward to Spread 2
-  attachTapListener(rightHalf, () => {
-    if (currentSpread === 1) {
-      goToSpread(2);
-    }
-  });
-}
-
-/* ==========================================================================
-   INITIALIZATION & CONTROLS
-   ========================================================================== */
-
-document.addEventListener("DOMContentLoaded", async () => {
-  initDustMotes();
-  updateStageTransform();
-  setupBackgroundMusic();
-
-  await detectFolderImages();
-  renderBookContent();
-  setupDirectPageTap();
-
-  // Open Hardcover Book
-  const frontCover = document.getElementById("frontCoverAssembly");
-  frontCover?.addEventListener("click", openBook);
-  frontCover?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openBook();
-    }
-  });
-
-  // Close Book
-  document.getElementById("closeBookBtn")?.addEventListener("click", closeBook);
-
-  // Page Spread Navigation (with smart one-page stepping when zoomed on mobile)
-  document.getElementById("prevPageBtn")?.addEventListener("click", () => {
-    const isMobile = window.innerWidth <= 860;
-    if (isMobile && zoomFocus === "right") {
-      zoomFocus = "left";
-      syncZoomButtons();
-      updateStageTransform();
-      updateSpreadUI();
-      return;
-    }
-    if (currentSpread > 1) {
-      if (isMobile && zoomFocus !== "spread") {
-        zoomFocus = "right";
-        syncZoomButtons();
-        updateStageTransform();
-      }
-      goToSpread(1);
-    }
-  });
-
-  document.getElementById("nextPageBtn")?.addEventListener("click", () => {
-    const isMobile = window.innerWidth <= 860;
-    if (isMobile && zoomFocus === "left") {
-      zoomFocus = "right";
-      syncZoomButtons();
-      updateStageTransform();
-      updateSpreadUI();
-      return;
-    }
-    if (currentSpread < 2) {
-      if (isMobile && zoomFocus !== "spread") {
-        zoomFocus = "left";
-        syncZoomButtons();
-        updateStageTransform();
-      }
-      goToSpread(2);
-    }
-  });
-
-  // Zoom Controls
-  document.querySelectorAll(".zoom-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      zoomFocus = btn.dataset.zoom || "spread";
-      syncZoomButtons();
-      updateStageTransform();
-      updateSpreadUI();
-    });
-  });
-
-  // Lightbox Controls
-  const lightbox = document.getElementById("photoLightbox");
-  document.getElementById("lightboxCloseBtn")?.addEventListener("click", closeLightbox);
-  document.getElementById("lightboxPrevBtn")?.addEventListener("click", () => stepLightbox(-1));
-  document.getElementById("lightboxNextBtn")?.addEventListener("click", () => stepLightbox(1));
-  lightbox?.addEventListener("click", (e) => {
-    if (e.target === lightbox) closeLightbox();
-  });
-
-  // Keyboard Navigation
-  document.addEventListener("keydown", (e) => {
-    const isLightboxOpen = lightbox && !lightbox.classList.contains("hidden");
-    if (isLightboxOpen) {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowLeft") stepLightbox(-1);
-      if (e.key === "ArrowRight") stepLightbox(1);
-      return;
-    }
-
-    if (isBookOpen) {
-      if (e.key === "ArrowRight") goToSpread(2);
-      if (e.key === "ArrowLeft") goToSpread(1);
-      if (e.key === "Escape") closeBook();
-    }
-  });
-
-  // Swipe Gestures
-  let touchStartX = 0;
-  const stage = document.getElementById("bookStage");
-  stage?.addEventListener(
-    "touchstart",
-    (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    },
-    { passive: true }
-  );
-  stage?.addEventListener(
-    "touchend",
-    (e) => {
-      if (!isBookOpen) return;
-      const diff = touchStartX - e.changedTouches[0].screenX;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) goToSpread(2);
-        else goToSpread(1);
-      }
-    },
-    { passive: true }
-  );
-
-  window.addEventListener("resize", () => {
-    updateStageTransform();
-    updateSpreadUI();
-  });
-});
